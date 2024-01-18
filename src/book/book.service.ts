@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Book } from "./book.entity";
 import { BookRepository } from "./book.repository";
@@ -12,6 +17,7 @@ import { PageMetaDto } from "./dto/page-meta.dto";
 
 @Injectable()
 export class BookService {
+  private logger = new Logger("Book Service", { timestamp: true });
   constructor(
     @InjectRepository(Book)
     private bookRepository: BookRepository,
@@ -46,22 +52,30 @@ export class BookService {
       resultQuery.where("title LIKE :search", { search: `%${search}%` });
     }
 
-    const itemCount = await resultQuery.getCount();
-    const { entities } = await resultQuery.getRawAndEntities();
+    try {
+      const itemCount = await resultQuery.getCount();
+      const { entities } = await resultQuery.getRawAndEntities();
 
-    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
-    const reulstDto = entities.map((v) => {
-      const dto = new ListBookDto();
-      dto.id = v.secure_id;
-      dto.title = v.title;
-      dto.description = v.description;
-      dto.release_date = v.release_date;
-      dto.author_name = v.author.name;
+      const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+      const reulstDto = entities.map((v) => {
+        const dto = new ListBookDto();
+        dto.id = v.secure_id;
+        dto.title = v.title;
+        dto.description = v.description;
+        dto.release_date = v.release_date;
+        dto.author_name = v.author.name;
 
-      return dto;
-    });
+        return dto;
+      });
 
-    return new PageDto(reulstDto, pageMetaDto);
+      return new PageDto(reulstDto, pageMetaDto);
+    } catch (error) {
+      this.logger.error(
+        `getBooks:: Failed to get books, search ${search}, pageOptionsDto ${JSON.stringify(pageOptionsDto)}`,
+        error.stack
+      );
+      throw new InternalServerErrorException();
+    }
   }
 
   async updateBook(id: string, updateDto: CreateBookDto): Promise<void> {

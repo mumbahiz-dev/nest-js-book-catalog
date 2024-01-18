@@ -1,23 +1,35 @@
-import { Module } from '@nestjs/common';
-import { BookModule } from './book/book.module';
-import { AuthorModule } from './author/author.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { Module } from "@nestjs/common";
+import { BookModule } from "./book/book.module";
+import { AuthorModule } from "./author/author.module";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "./auth/auth.module";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { configValidtionSchema } from "./config.schema";
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: [`.env.stage.${process.env.STAGE}`],
+      validationSchema: configValidtionSchema,
+    }),
     BookModule,
     AuthorModule,
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: '34.101.82.152',
-      port: 3306,
-      username: 'developer',
-      password: 'welcome1',
-      database: 'db_mumbahiz_book_catalog',
-      synchronize: true,
-      autoLoadEntities: true,
-      logging: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        return {
+          type: "mysql",
+          synchronize: true,
+          autoLoadEntities: true,
+          logging: true,
+          host: configService.get("DB_HOST"),
+          port: configService.get("DB_PORT"),
+          username: configService.get("DB_USERNAME"),
+          password: configService.get("DB_PASSWORD"),
+          database: configService.get("DB_DATABASE"),
+        };
+      },
     }),
     AuthModule,
   ],

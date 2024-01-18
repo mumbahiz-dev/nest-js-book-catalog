@@ -4,6 +4,7 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -16,11 +17,12 @@ import { ListBookDto } from "./dto/list-book.dto";
 import { JwtGuard } from "src/auth/jwt.guard";
 import { PageDto } from "./dto/page.dto";
 import { PageOptionsDto } from "./dto/page-options.dto";
-import { Book } from "./book.entity";
 
 @Controller("book")
 @UseGuards(JwtGuard)
 export class BookController {
+  private logger = new Logger("TaskController");
+
   constructor(private bookService: BookService) {}
 
   @Post()
@@ -33,6 +35,7 @@ export class BookController {
     @Query() pageOptionsDto: PageOptionsDto,
     @Query("search", new DefaultValuePipe("")) search: string
   ): Promise<PageDto<ListBookDto>> {
+    this.logger.verbose(`Page Options Dto ${JSON.stringify(pageOptionsDto)}`);
     return this.bookService.getBooks(search, pageOptionsDto);
   }
 
