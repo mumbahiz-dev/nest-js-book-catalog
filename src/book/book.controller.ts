@@ -1,17 +1,25 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
   Post,
   Put,
-} from '@nestjs/common';
-import { BookService } from './book.service';
-import { CreateBookDto } from './dto/create-book.dto';
-import { ListBookDto } from './dto/list-book.dto';
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { BookService } from "./book.service";
+import { CreateBookDto } from "./dto/create-book.dto";
+import { ListBookDto } from "./dto/list-book.dto";
+import { JwtGuard } from "src/auth/jwt.guard";
+import { PageDto } from "./dto/page.dto";
+import { PageOptionsDto } from "./dto/page-options.dto";
+import { Book } from "./book.entity";
 
-@Controller('book')
+@Controller("book")
+@UseGuards(JwtGuard)
 export class BookController {
   constructor(private bookService: BookService) {}
 
@@ -21,20 +29,23 @@ export class BookController {
   }
 
   @Get()
-  getBooks(): Promise<ListBookDto[]> {
-    return this.bookService.getBooks();
+  getBooks(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query("search", new DefaultValuePipe("")) search: string
+  ): Promise<PageDto<ListBookDto>> {
+    return this.bookService.getBooks(search, pageOptionsDto);
   }
 
-  @Put('/:bookId')
+  @Put("/:bookId")
   updateBook(
-    @Param('id') id: string,
-    @Body() updateDto: CreateBookDto,
+    @Param("bookId") id: string,
+    @Body() updateDto: CreateBookDto
   ): Promise<void> {
     return this.bookService.updateBook(id, updateDto);
   }
 
-  @Delete('/:id')
-  deleteBook(@Param('id') id: string): Promise<void> {
+  @Delete("/:id")
+  deleteBook(@Param("id") id: string): Promise<void> {
     return this.bookService.deleteBook(id);
   }
 }

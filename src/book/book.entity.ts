@@ -1,4 +1,4 @@
-import { Author } from 'src/author/author.entity';
+import { Author } from "src/author/author.entity";
 import {
   Column,
   CreateDateColumn,
@@ -8,14 +8,14 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
 @Entity()
 export class Book {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Generated('uuid')
+  @Generated("uuid")
   @Column()
   secure_id: string;
 
@@ -31,10 +31,10 @@ export class Book {
   @Column()
   description: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: "timestamp" })
   release_date: Date;
 
-  @ManyToOne(() => Author, (author) => author.book)
-  @JoinColumn({ name: 'author_id' })
+  @ManyToOne(() => Author, (author) => author.book, { eager: true })
+  @JoinColumn({ name: "author_id" })
   author: Author;
 }

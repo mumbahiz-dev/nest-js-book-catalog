@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Book } from './book.entity';
-import { BookRepository } from './book.repository';
-import { CreateBookDto } from './dto/create-book.dto';
-import { AuthorRepository } from 'src/author/author.repository';
-import { Author } from 'src/author/author.entity';
-import { ListBookDto } from './dto/list-book.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Book } from "./book.entity";
+import { BookRepository } from "./book.repository";
+import { CreateBookDto } from "./dto/create-book.dto";
+import { AuthorRepository } from "src/author/author.repository";
+import { Author } from "src/author/author.entity";
+import { ListBookDto } from "./dto/list-book.dto";
+import { PageDto } from "./dto/page.dto";
+import { PageOptionsDto } from "./dto/page-options.dto";
+import { PageMetaDto } from "./dto/page-meta.dto";
 
 @Injectable()
 export class BookService {
@@ -13,7 +16,7 @@ export class BookService {
     @InjectRepository(Book)
     private bookRepository: BookRepository,
     @InjectRepository(Author)
-    private authorRepository: AuthorRepository,
+    private authorRepository: AuthorRepository
   ) {}
 
   async createBook(requestDto: CreateBookDto): Promise<void> {
@@ -28,10 +31,26 @@ export class BookService {
     await this.bookRepository.save(book);
   }
 
-  async getBooks(): Promise<ListBookDto[]> {
-    return (
-      await this.bookRepository.find({ relations: { author: true } })
-    ).map((v) => {
+  async getBooks(
+    search: string,
+    pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<ListBookDto>> {
+    const resultQuery = await this.bookRepository
+      .createQueryBuilder("book")
+      .innerJoinAndSelect("book.author", "author")
+      .orderBy("book.created_at", pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    if (search) {
+      resultQuery.where("title LIKE :search", { search: `%${search}%` });
+    }
+
+    const itemCount = await resultQuery.getCount();
+    const { entities } = await resultQuery.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    const reulstDto = entities.map((v) => {
       const dto = new ListBookDto();
       dto.id = v.secure_id;
       dto.title = v.title;
@@ -41,6 +60,8 @@ export class BookService {
 
       return dto;
     });
+
+    return new PageDto(reulstDto, pageMetaDto);
   }
 
   async updateBook(id: string, updateDto: CreateBookDto): Promise<void> {
@@ -59,7 +80,7 @@ export class BookService {
     const result = this.bookRepository.delete({ secure_id: id });
 
     if ((await result).affected === 0) {
-      throw new NotFoundException('Book not found');
+      throw new NotFoundException("Book not found");
     }
   }
 
@@ -70,7 +91,7 @@ export class BookService {
     });
 
     if (!book) {
-      throw new NotFoundException('Book not found.');
+      throw new NotFoundException("Book not found.");
     }
 
     return book;
@@ -81,7 +102,7 @@ export class BookService {
     });
 
     if (!author) {
-      throw new NotFoundException('Author not found.');
+      throw new NotFoundException("Author not found.");
     }
 
     return author;
