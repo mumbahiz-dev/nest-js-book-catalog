@@ -6,9 +6,10 @@ import { Book } from "./book.entity";
 import { Author } from "src/author/author.entity";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigModule } from "@nestjs/config";
+import { Category } from "src/category/category.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Book, Author]), ConfigModule],
+  imports: [TypeOrmModule.forFeature([Book, Author, Category]), ConfigModule],
   controllers: [BookController],
   providers: [BookService, JwtService],
 })

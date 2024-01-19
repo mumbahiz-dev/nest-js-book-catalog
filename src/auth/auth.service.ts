@@ -10,6 +10,7 @@ import { UserRepository } from "./user.repository";
 import * as bcrypt from "bcrypt";
 import { JwtPayload } from "./jwt-payload.interface";
 import { JwtService } from "@nestjs/jwt";
+import { Role } from "./role.entity";
 
 @Injectable()
 export class AuthService {
@@ -41,10 +42,14 @@ export class AuthService {
   ): Promise<{ access_token: string }> {
     const user = await this.userRepository.findOne({
       where: { username: signInDto.username },
+      relations: { roles: true },
     });
 
     if (user && (await bcrypt.compare(signInDto.password, user.password))) {
-      const payload: JwtPayload = { username: signInDto.username };
+      const payload: JwtPayload = {
+        username: signInDto.username,
+        roles: user.roles.map((role) => role.name),
+      };
       const accesToken: string = await this.jwtService.sign(payload);
       return { access_token: accesToken };
     }

@@ -1,4 +1,5 @@
 import { Author } from "src/author/author.entity";
+import { Category } from "src/category/category.entity";
 import {
   Column,
   CreateDateColumn,
@@ -37,4 +38,8 @@ export class Book {
   @ManyToOne(() => Author, (author) => author.book, { eager: true })
   @JoinColumn({ name: "author_id" })
   author: Author;
+
+  @ManyToOne(() => Category, (category) => category.books)
+  @JoinColumn({ name: "category_id" })
+  category: Category;
 }

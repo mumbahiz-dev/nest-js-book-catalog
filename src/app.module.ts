@@ -5,6 +5,9 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./auth/auth.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { configValidtionSchema } from "./config.schema";
+import { CommonModule } from './common/common.module';
+import { CategoryModule } from './category/category.module';
+import { PublisherModule } from './publisher/publisher.module';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { configValidtionSchema } from "./config.schema";
       },
     }),
     AuthModule,
+    CommonModule,
+    CategoryModule,
+    PublisherModule,
   ],
 })
 export class AppModule {}

@@ -15,11 +15,14 @@ import { BookService } from "./book.service";
 import { CreateBookDto } from "./dto/create-book.dto";
 import { ListBookDto } from "./dto/list-book.dto";
 import { JwtGuard } from "src/auth/jwt.guard";
-import { PageDto } from "./dto/page.dto";
-import { PageOptionsDto } from "./dto/page-options.dto";
+import { PageOptionsDto } from "src/common/dto/page-options.dto";
+import { PageDto } from "src/common/dto/page.dto";
+import { UpdateBookDto } from "./dto/update-book.dto";
+import { RolesGuard } from "src/auth/guard/roles.guard";
+import { Roles } from "src/auth/decorator/roles.decorator";
 
 @Controller("book")
-@UseGuards(JwtGuard)
+@UseGuards(RolesGuard)
 export class BookController {
   private logger = new Logger("TaskController");
 
@@ -31,6 +34,7 @@ export class BookController {
   }
 
   @Get()
+  @Roles(["Sales", "admin"])
   getBooks(
     @Query() pageOptionsDto: PageOptionsDto,
     @Query("search", new DefaultValuePipe("")) search: string
@@ -42,7 +46,7 @@ export class BookController {
   @Put("/:bookId")
   updateBook(
     @Param("bookId") id: string,
-    @Body() updateDto: CreateBookDto
+    @Body() updateDto: UpdateBookDto
   ): Promise<void> {
     return this.bookService.updateBook(id, updateDto);
   }

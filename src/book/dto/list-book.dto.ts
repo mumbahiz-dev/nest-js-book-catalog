@@ -4,4 +4,5 @@ export class ListBookDto {
   description: string;
   release_date: Date;
   author_name: string;
+  category: string;
 }

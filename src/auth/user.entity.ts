@@ -3,16 +3,20 @@ import {
   CreateDateColumn,
   Entity,
   Generated,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
+import { Role } from "./role.entity";
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Generated('uuid')
+  @Generated("uuid")
   @Column()
   secure_id: string;
 
@@ -27,4 +31,8 @@ export class User {
 
   @Column()
   password: string;
+
+  @ManyToMany(() => Role, { cascade: true })
+  @JoinTable({ name: "user_roles" })
+  roles: Role[];
 }
